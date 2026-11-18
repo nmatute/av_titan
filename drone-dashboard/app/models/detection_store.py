@@ -66,7 +66,14 @@ class DetectionStore:
                     self.first_sightings[detection.drone_id] = detection
                 self.readings.append((message.timestamp, detection.rssi))
 
-
+    def clear(self):
+        """Forget everything received so far (the dashboard's Clear button)."""
+        with self.lock:
+            self.message_count = 0
+            self.active = []
+            self.first_sightings = {}
+            self.readings = []
+            
     def get_state(self):
         """Return everything the dashboard needs, as a StateResponse."""
         now = int(self.clock())

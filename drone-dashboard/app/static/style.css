@@ -1,0 +1,260 @@
+/* Custom styles. Bootstrap does the layout; this file holds the palette
+   and the few things Bootstrap doesn't have (histogram bars, status dot, etc). */
+
+:root {
+  --charcoal: #151719;
+  --blue: #1687ec;
+  --blue-dark: #0c6fc8;
+  --blue-light: #7dbbf0;
+  --blue-soft: #e7f2fc;
+  --white: #ffffff;
+
+  --red: #d13b43;
+  --red-dark: #b92f37;
+
+  /* softer versions of the charcoal, so we stay inside the palette */
+  --muted: rgba(21, 23, 25, 0.62);
+  --line: rgba(21, 23, 25, 0.14);
+}
+
+/* ---- page ---- */
+
+body {
+  background: #f4f4f4;
+  color: var(--charcoal);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.eyebrow {
+  color: var(--blue);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.tag {
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+}
+
+/* ---- Bootstrap overrides: use our colours ---- */
+
+.card {
+  --bs-card-bg: var(--white);
+  --bs-card-border-color: var(--line);
+  --bs-card-cap-bg: var(--white);
+  --bs-card-border-radius: 2px;
+  --bs-card-inner-border-radius: 2px;
+}
+
+.card-header,
+.card-footer {
+  border-color: var(--line);
+}
+
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--charcoal);
+  --bs-table-border-color: var(--line);
+  --bs-table-hover-bg: var(--blue-soft);
+  --bs-table-hover-color: var(--charcoal);
+}
+
+.table thead th {
+  background: var(--blue-soft);
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.btn {
+  --bs-btn-border-radius: 2px;
+  font-weight: 600;
+}
+
+/* Turn On (and anything else "primary") is blue */
+.btn-primary {
+  --bs-btn-color: var(--white);
+  --bs-btn-bg: var(--blue);
+  --bs-btn-border-color: var(--blue);
+  --bs-btn-hover-color: var(--white);
+  --bs-btn-hover-bg: var(--blue-dark);
+  --bs-btn-hover-border-color: var(--blue-dark);
+  --bs-btn-active-color: var(--white);
+  --bs-btn-active-bg: var(--blue-dark);
+  --bs-btn-active-border-color: var(--blue-dark);
+}
+
+/* Turn Off is red */
+.btn-danger {
+  --bs-btn-color: var(--white);
+  --bs-btn-bg: var(--red);
+  --bs-btn-border-color: var(--red);
+  --bs-btn-hover-color: var(--white);
+  --bs-btn-hover-bg: var(--red-dark);
+  --bs-btn-hover-border-color: var(--red-dark);
+  --bs-btn-active-color: var(--white);
+  --bs-btn-active-bg: var(--red-dark);
+  --bs-btn-active-border-color: var(--red-dark);
+}
+
+/* Clear */
+.btn-outline-dark {
+  --bs-btn-color: var(--charcoal);
+  --bs-btn-bg: var(--white);
+  --bs-btn-border-color: var(--line);
+  --bs-btn-hover-color: var(--white);
+  --bs-btn-hover-bg: var(--charcoal);
+  --bs-btn-hover-border-color: var(--charcoal);
+  --bs-btn-active-color: var(--white);
+  --bs-btn-active-bg: var(--charcoal);
+  --bs-btn-active-border-color: var(--charcoal);
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 0.2rem var(--blue-light);
+}
+
+.progress {
+  --bs-progress-bg: var(--blue-soft);
+  --bs-progress-height: 4px;
+  --bs-progress-border-radius: 0;
+}
+
+.progress-bar {
+  background: var(--charcoal);
+}
+
+.progress-bar.bar-blue {
+  background: var(--blue);
+}
+
+/* ---- header ---- */
+
+.feed-box {
+  border-color: var(--line) !important;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 0 4px var(--blue-soft);
+}
+
+.status-dot.off {
+  background: var(--muted);
+  box-shadow: none;
+}
+
+.alert-offline {
+  background: var(--white);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 2px;
+}
+
+/* ---- number cards ---- */
+
+.stat-number {
+  font-size: 2.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.card-accent {
+  border-bottom: 3px solid var(--blue);
+}
+
+.count-badge {
+  background: var(--blue-soft);
+  color: var(--blue-dark);
+  border: 1px solid var(--blue-light);
+  border-radius: 2px;
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
+
+/* ---- table ---- */
+
+.drone-cell {
+  border-left: 4px solid var(--charcoal);
+}
+
+.drone-cell.band-24 {
+  border-left-color: var(--blue);
+}
+
+.band-badge {
+  background: var(--blue-soft);
+  color: var(--charcoal);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+/* ---- histogram ---- */
+
+.histogram {
+  display: flex;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--charcoal);
+}
+
+.hist-col {
+  flex: 1;
+  padding: 0 0.6rem;
+  min-width: 0;
+}
+
+/* a fixed-height box; the bar inside is a percentage of it */
+.hist-bar-area {
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+}
+
+.hist-count {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.hist-bar {
+  background: var(--charcoal);
+  min-height: 2px;
+}
+
+/* the tallest bar is blue */
+.hist-bar.hist-bar-top {
+  background: var(--blue);
+}
+
+.hist-labels {
+  display: flex;
+  margin-top: 0.4rem;
+}
+
+.hist-label {
+  flex: 1;
+  padding: 0 0.6rem;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--muted);
+}

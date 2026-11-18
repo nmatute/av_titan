@@ -5,7 +5,7 @@ so wrong types or missing fields are rejected with a 422 that says which field
 is wrong. The store that keeps the data is in detection_store.py.
 """
 from typing import Annotated, Literal
-
+from pydantic.alias_generators import to_camel
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 # A string that can't be empty or only spaces.
 NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
@@ -46,6 +46,8 @@ class StateResponse(BaseModel):
     """The JSON returned by GET /api/state."""
     # alias_generator turns message_count into "messageCount" in the JSON,
     # which is the naming the JavaScript side will expect.
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
     message_count: int
     active: list[Detection]
     bands: dict[str, int]

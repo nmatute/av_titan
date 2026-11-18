@@ -12,6 +12,12 @@ def get_store(request: Request) -> DetectionStore:
     """Dependency: hands each route the store that create_app() attached."""
     return request.app.state.store
 
+@router.post("/api/clear", status_code=204)
+def clear_data(store: DetectionStore = Depends(get_store)):
+    """POST /api/clear: forget everything received so far (the dashboard's Clear button)."""
+    store.clear()
+    return Response(status_code=204)
+
 
 @router.post("/detections", status_code=204)
 def receive_detections(
