@@ -1,5 +1,10 @@
 /* The only custom styling is for the cards. Everything else uses Bootstrap classes. */
 
+/* Use the dashboard's monospace typography by default. */
+body {
+    font-family: var(--bs-font-monospace);
+}
+
 /* Square, white cards with a soft charcoal border. */
 .card {
     --bs-card-bg: #ffffff;

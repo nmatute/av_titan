@@ -24,18 +24,18 @@
             columns: [
                 {
                     data: "drone_id",
-                    className: "ps-4 font-monospace fw-semibold",
+                    className: "ps-4 fw-semibold",
                     render: DataTable.render.text(),
                 },
                 {
                     data: "start_time",
-                    className: "font-monospace text-secondary",
+                    className: "text-secondary",
                     // Show local time in the table and search, and sort by the timestamp.
                     render: (start, type) => type === "display" || type === "filter" ? format.clock(start) : start,
                 },
                 {
                     data: "duration",
-                    className: "font-monospace fw-semibold",
+                    className: "fw-semibold",
                     render: (duration, type) => type === "display" || type === "filter" ? format.duration(duration) : duration,
                 },
                 {
@@ -47,7 +47,7 @@
                 { data: "classification", render: DataTable.render.text() },
                 {
                     data: "rssi",
-                    className: "text-end pe-4 font-monospace",
+                    className: "text-end pe-4",
                     render: (rssi, type) => type === "display"
                         ? `<strong>${rssi}</strong> <span class="text-secondary small">dBm</span>`
                         : rssi,
