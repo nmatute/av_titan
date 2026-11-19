@@ -225,10 +225,10 @@ It keeps **three collections**, one for each question the dashboard asks:
 
 Key details:
 
-- **Thread safety.** Requests can arrive at the same moment, so every method takes a `lock` and the requests take turns.
-- **Testable time.** The store asks an injected `TimeProvider` for the time instead of calling `DateTime.Now`. The app uses the real clock, and the tests pass in a `FakeTimeProvider` they can move forward.
-- **Memory stays small.** After each message, readings older than 5 minutes (300 seconds) are removed. Readings are added in time order, so the oldest are at the front and the cleanup removes from the front until it reaches a recent one.
-- **The histogram** has 9 bins, each 5 dBm wide, from -110 to -65. For each reading from the last 5 minutes, the bin number is:
+- **Thread safety:** Requests can arrive at the same moment, so every method takes a `lock` and the requests take turns.
+- **Testable time:** The store asks an injected `TimeProvider` for the time instead of calling `DateTime.Now`. The app uses the real clock, and the tests pass in a `FakeTimeProvider` they can move forward.
+- **Memory stays small:** After each message, readings older than 5 minutes (300 seconds) are removed. Readings are added in time order, so the oldest are at the front and the cleanup removes from the front until it reaches a recent one.
+- **Histogram:** has 9 bins, each 5 dBm wide, from -110 to -65. For each reading from the last 5 minutes, the bin number is:
 
   ```
   index = floor((rssi - (-110)) / 5)        // for example -87 -> floor(23 / 5) = bin 4  (-90 to -85)
@@ -239,10 +239,10 @@ Key details:
 
 ### The dashboard (`wwwroot/js/dashboard.js`)
 
-- **Polling.** `setInterval` calls `tick()` every second. `tick()` fetches `GET /api/state` with `$.ajax`, then `render()` draws everything from that one JSON object.
+- **Polling:** `setInterval` calls `tick()` every second. `tick()` fetches `GET /api/state` with `$.ajax`, then `render()` draws everything from that one JSON object.
 - **The table** is a DataTables table created once. On each update the rows are replaced with `clear().rows.add(rows).draw()`, which keeps the user's search text and sort order.
 - **Duration** isn't sent by the API. The browser computes it as *current server time − `start_time`*. To stay accurate even if the computer's clock is off, it stores the difference between `serverTime` and its own clock (`clockOffset`). Because `render()` runs every second, durations count up smoothly.
-- **The histogram** is a Chart.js bar chart created once. Each update replaces its labels and data and calls `chart.update()`.
+- **The histogram** is a Chart.js bar chart created once. Each update replaces its labels/data and calls `chart.update()`.
 - **Device Breakdown** has four fixed rows (2.4 GHz, 5.8 GHz, OcuSync, Lightbridge). The JavaScript only fills in the numbers (`renderBreakdown`), using `|| 0` for anything not seen yet.
 - **Feed on/off.** The *Turn Off* button stops the polling and freezes the durations. *Turn On* resumes.
 - **Clear** sends `POST /api/clear`, then reloads the state.
@@ -296,9 +296,9 @@ The tests are in `tests/DroneTests` and use [xUnit](https://xunit.net/). They ne
 
 ### How the tests stay reliable
 
-- **A fake clock.** The store asks a TimeProvider for the time. The tests give it a FakeTimeProvider that they can move forward, so the 5-minute window can be tested instantly.
-- **A seeded `Random`.** The simulator tests pass `new Random(42)`, so every run produces exactly the same drones.
-- **A fresh app per test.** Each API test starts its own copy of the app, so tests never share data or depend on running in a particular order.
+- **Fake clock:** The store asks a TimeProvider for the time. The tests give it a FakeTimeProvider that they can move forward, so the 5-minute window can be tested instantly.
+- **Seeded `Random`:** The simulator tests pass `new Random(42)`, so every run produces exactly the same drones.
+- **Fresh app per test:** Each API test starts its own copy of the app, so tests never share data or depend on running in a particular order.
 
 </details>
 <details>
@@ -313,11 +313,11 @@ The page uses Bootstrap 5 for layout and styling and some custom CSS for the car
 <details>
 <summary><h2>Design decisions and trade-offs</h2></summary>
 
-- **No database.** Everything is in memory, as requested. Restarting the API resets all data.
-- **Polling, not push.** The page asks for new data every second. It's the simplest approach and fits the 3-second message rate. SignalR or server-sent events would remove the polling but add moving parts.
-- **One endpoint for the whole dashboard.** `GET /api/state` returns everything in one response, so the page never shows half-updated numbers.
-- **The server computes the histogram.** The browser receives ready-made bins, so the binning logic is in C# where it can be unit-tested.
-- **Simulator as a console app.** It's separate from the API, so it behaves like a real external sender that could be pointed at any address.
+- **No database:** Everything is in memory, as requested. Restarting the API resets all data.
+- **Polling, not push:** The page asks for new data every second. It's the simplest approach and fits the 3-second message rate. Server-sent events would remove the polling but add moving parts.
+- **One endpoint for the whole dashboard:** `GET /api/state` returns everything in one response, so the page never shows half-updated numbers.
+- **The server computes the histogram:** The browser receives ready-made bins, so the binning logic is in C# where it can be unit-tested.
+- **Simulator as a console app:** It's separate from the API, so it behaves like a real external sender that could be pointed at any address.
 
 </details>
 
@@ -349,6 +349,6 @@ The page uses Bootstrap 5 for layout and styling and some custom CSS for the car
 - **Continuous integration:** A GitHub Actions workflow that builds and runs `dotnet test` on every push.
 - **More tests:** A browser test (Playwright) that checks the dashboard actually fills in, and tests for late or out-of-order messages.
 - **Logging and health:** Structured logging with `ILogger` and a `/health` endpoint.
-- **UI Improvements:** A per-drone rssi sparkline, table paging, a time zone choice, and libraries bundled with the app instead of loaded from CDNs, so it works offline.
+- **UI Improvements:** A per-drone rssi sparkline, table paging, a time zone choice, and libraries bundled with the app instead of loaded from CDNs, so it works offline. 
 </details>
  
