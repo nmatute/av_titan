@@ -56,85 +56,107 @@ tests/                     xUnit tests
 
 <details >
 <summary><h2>How to run</h2></summary>
-
+  
 ### 1. Install the .NET 9 SDK
-
-Download it from <https://dotnet.microsoft.com/download/dotnet/9.0> (choose **SDK**, not Runtime), run the installer, then check it worked:
-
+ 
+Download it from <https://dotnet.microsoft.com/download/dotnet/9.0> (choose **SDK**, not Runtime), run the installer, then open a **new** terminal and check it worked:
+ 
 ```
 dotnet --version
 ```
-
+ 
 Visual Studio is **optional**. Everything below runs from a terminal with just the .NET 9 SDK.
 If you prefer an IDE, Visual Studio 2022 (17.12 or newer, with the "ASP.NET and web development"
 workload) or VS Code with the C# Dev Kit both work.
-
+ 
+> **Using VS Code?** Open the project folder (**File → Open Folder**), then open a terminal with **Terminal → New Terminal**. Type every command below into that terminal.
+ 
 ### 2. Get the code and build
-
+ 
 ```
 git clone https://github.com/nmatute/av_titan.git
 cd av_titan/dot_net
 dotnet build
 ```
-
+ 
+> **No git?** On the GitHub page click **Code → Download ZIP**, unzip it, and run `cd av_titan-main/dot_net` instead, then `dotnet build`.
+ 
+All the commands below are run from this `dot_net` folder.
+ 
 ### 3. Trust the HTTPS development certificate (once)
-
+ 
 The API listens on HTTPS, so run this once and accept the prompt:
-
+ 
 ```
 dotnet dev-certs https --trust
 ```
-
-### 4. Start the API
-
+ 
+### 4. Start the API (terminal 1)
+ 
+From the `dot_net` folder:
+ 
 ```
-dotnet run --project DroneDetection
+dotnet run --project DroneDetection --launch-profile http
 ```
-
-Wait for the line `Now listening on: https://localhost:7052`, then open **<https://localhost:7052>** in a browser. The dashboard is empty until the simulator starts.
-
-> The address comes from `DroneDetection/Properties/launchSettings.json` (`applicationUrl`). If your API prints a different port, use that port everywhere below.
-
-### 5. Start the simulator (in a second terminal)
-
+ 
+Wait until you see:
+ 
 ```
-dotnet run --project DroneSimulator
+Now listening on: http://localhost:5150
 ```
-
-The simulator **must post to the same address the API is listening on**. Its default is set at the top of `DroneSimulator/Program.cs`:
-
-```csharp
-string apiUrl = "https://localhost:7052/detections";
+ 
+Leave this terminal running. Open **http://localhost:5150** in your browser. The dashboard is empty until the simulator starts.
+ 
+### 5. Start the simulator (terminal 2)
+ 
+Open a **second** terminal (in VS Code, click the **+** in the terminal panel), go to the `dot_net` folder again, and run:
+ 
 ```
-
-You can also pass the address (and the interval in seconds) without editing code:
-
+dotnet run --project DroneSimulator '--' http://localhost:5150/detections 3
 ```
-dotnet run --project DroneSimulator -- https://localhost:7052/detections 3
-```
-
-Each line it prints should end in `-> 204`. Within a few seconds the dashboard starts filling in.
-
+ 
+Each line it prints should end in `-> 204` (that means "received OK"). Within a few seconds the dashboard starts filling in.
+ 
+To stop either program, click into its terminal and press **Ctrl+C**.
+ 
 ### Running both from Visual Studio
-
+ 
 Right-click the solution → **Configure Startup Projects** → **Multiple startup projects** → set `DroneDetection` and `DroneSimulator` to **Start**, with `DroneDetection` listed first. Pick the `https` profile for the API and press **F5**.
-
-### Run the tests
-
+ 
+### Run the tests (optional)
+ 
+First stop the API and the simulator (press **Ctrl+C** in each terminal). Windows locks the files of a running program, so the tests can't rebuild while they are running.
+ 
+Then, in a terminal, go to the `dot_net` folder and run the test project:
+ 
 ```
-dotnet test
+cd av_titan/dot_net
+dotnet test tests/DroneTests
 ```
-
+ 
+If you downloaded the ZIP, the first folder is named `av_titan-main` instead, so use `cd av_titan-main/dot_net`.
+ 
+To check you're in the right place, run `ls`. You should see `DroneDetection`, `DroneSimulator` and `tests` listed.
+ 
+It should end with a summary like `Passed!  - Failed: 0, Passed: ...`.
+ 
+---
+ 
 ### Troubleshooting
-
+ 
 | Symptom | Cause / fix |
 |---|---|
 | Simulator prints `POST failed: ... actively refused it` | The API isn't running, or the simulator's URL and port don't match the API's. |
 | Simulator prints a certificate / SSL error | Run `dotnet dev-certs https --trust`, then restart both programs. |
+| Simulator prints `POST failed: An invalid request URI was provided` | PowerShell dropped the `--`, so the address never reached the simulator. Use `'--'` in quotes (see step 5). |
 | Simulator prints `-> 400` | The API rejected the message. The body didn't match the expected format. |
 | Dashboard shows "Can't reach the API" | The API isn't running. |
 | Dashboard is empty but the API receives messages | Open the browser console (F12) and look for a red error. The page loads libraries from CDNs, so it needs an internet connection. |
-
+| `dotnet` is not recognized / command not found | The SDK isn't installed, or the terminal was opened before installing. Open a new terminal. |
+| `git` is not recognized | Git isn't installed. Use **Code → Download ZIP** on GitHub instead (see step 2). |
+| `dotnet build` or `dotnet test` prints `MSB1003: Specify a project or solution file` | You're not in the `dot_net` folder. Run `ls` and check that `DroneDetection`, `DroneSimulator` and `tests` are listed. |
+| `dotnet test` says a file is `being used by another process` | The API or simulator is still running. Press Ctrl+C in both terminals and run the tests again. |
+ 
 </details>
 
 <details>
