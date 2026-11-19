@@ -322,7 +322,7 @@ The page uses Bootstrap 5 for layout and styling and some custom CSS for the car
 <details>
 <summary><h2>Issues encountered</h2></summary>
 
-- **Switching stacks.** I built the first version in Python, then moved to C# / .NET so I could work in a stack I know well.
+- **Switching stacks.** I built a first version in Python, then rebuilt it in C# / .NET (the stack I work in every day) so I can confidently explain and extend it.
 - **Simulator "connection refused".** The API was listening on `https://localhost:7052`, but the simulator was posting to `http://localhost:3000`. Fixed by making the simulator's URL match the API's address.
 - **Timestamp is a string.** The spec sends `timestamp` as a string, but the model stores a number. Fixed with `JsonNumberHandling.AllowReadingFromString`.
 - **Histogram edge case.** An rssi of exactly -65 works out to bin 9, but there are only bins 0 to 8. It is now placed in the last bin instead of causing an error.
