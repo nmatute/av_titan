@@ -328,3 +328,25 @@ The page uses Bootstrap 5 for layout and styling and some custom CSS for the car
 - **Histogram edge case.** An rssi of exactly -65 works out to bin 9, but there are only bins 0 to 8. It is now placed in the last bin instead of causing an error.
 
 </details>
+
+<details>
+<summary><h2>Future Improvements</h2></summary>
+  
+- **Move the data into SQL Server:** Store messages, drones and readings in three tables and replace the in-memory lists with queries: `COUNT` for messages, `GROUP BY` for bands and classifications, and a `FLOOR((rssi + 110) / 5)` `GROUP BY` over the last 5 minutes for the histogram. 
+  - **Benefits:**
+    - Data survives a restart.
+    - Memory doesn't grow.
+    - The database does the counting.
+    - A primary key on the drone id keeps "count each drone once" automatic.
+    - History (flight duration, trends) becomes easy.
+  - **Trade-off:** one more thing to run, and each request becomes a database call.
+- **Real time updates:** Use Server-sent events so the server pushes new data to the page as soon as a message arrives, instead of the page asking for it every second.
+- **Tighter validation:** Add `[Range(-110, -65)]` on rssi, reject duplicate `msg_id`s, and limit the request size.
+- **Security:** Require an API key on `POST /detections` and add rate limiting.
+- **Configuration:** Move URLs, ports, the interval, the 5-minute window and the bin settings into `appsettings.json` or environment variables instead of constants in code.
+- **Continuous integration:** A GitHub Actions workflow that builds and runs `dotnet test` on every push.
+- **More tests:** A browser test (Playwright) that checks the dashboard actually fills in, and tests for late or out-of-order messages.
+- **Logging and health:** Structured logging with `ILogger` and a `/health` endpoint.
+- **UI Improvements:** A per-drone rssi sparkline, table paging, a time zone choice, and libraries bundled with the app instead of loaded from CDNs, so it works offline.
+</details>
+ 
