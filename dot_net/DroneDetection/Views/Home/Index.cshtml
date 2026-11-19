@@ -1,8 +1,172 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Detection Overview";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container px-4 py-4">
+
+    <!-- ===== Header ===== -->
+    <header class="row align-items-end gy-3 mb-4">
+        <div class="col-lg">
+            <div class="text-primary small text-uppercase font-monospace">Operations / Signal monitoring</div>
+            <h1 class="h2 fw-semibold mb-1">Detection overview</h1>
+            <p class="text-secondary mb-0">Real-time RF detections reported by the monitoring service.</p>
+        </div>
+
+        <div class="col-lg-auto d-flex align-items-center flex-wrap gap-2">
+            <!-- Feed on/off: the red/blue button stops or restarts the page asking for updates -->
+            <div class="d-flex align-items-center bg-white border rounded overflow-hidden">
+                <span class="d-flex align-items-center gap-2 px-3">
+                    <!-- the dot: blue while the feed is on, grey while it is off (dashboard.js swaps the colour) -->
+                    <span id="feed-dot" class="badge rounded-circle bg-primary p-1"></span>
+                    <span id="feed-label">Detection Feed On</span>
+                </span>
+                <button id="feed-button" type="button" class="btn btn-danger rounded-0">Turn Off</button>
+            </div>
+
+            <button id="clear-button" type="button" class="btn btn-outline-dark">Clear</button>
+        </div>
+    </header>
+
+    <!-- Shown only when the API can't be reached -->
+    <div id="error-box" class="alert alert-danger d-none" role="alert">
+        Can't reach the API. Is the server running?
+    </div>
+
+    <!-- ===== Three number cards ===== -->
+    <section class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="card card-accent h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-uppercase text-secondary">Active detections</span>
+                        <span class="badge rounded-circle bg-primary p-1"></span>
+                    </div>
+                    <div id="stat-active" class="display-5 fw-semibold font-monospace my-2">0</div>
+                    <div class="text-secondary small">Currently in range</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-uppercase text-secondary">Messages received</span>
+                        <span class="small text-uppercase text-secondary font-monospace">Session</span>
+                    </div>
+                    <div id="stat-messages" class="display-5 fw-semibold font-monospace my-2">0</div>
+                    <div class="text-secondary small">Since the server started</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-uppercase text-secondary">Unique drones seen</span>
+                        <span class="small text-uppercase text-secondary font-monospace">Session</span>
+                    </div>
+                    <div id="stat-unique" class="display-5 fw-semibold font-monospace my-2">0</div>
+                    <div id="stat-unique-active" class="text-secondary small">0 currently active</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Histogram and breakdown ===== -->
+    <section class="row g-3 mb-3">
+        <div class="col-lg-9">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-start py-3 px-4">
+                    <div>
+                        <h2 class="h5 fw-semibold mb-1">RSSI Distribution</h2>
+                        <div class="text-secondary small">Every rssi reading from all drones in the last 5 minutes</div>
+                    </div>
+                    <span id="histogram-samples" class="small font-monospace text-secondary">0 samples</span>
+                </div>
+                <div class="card-body px-4">
+                    <!-- Chart.js draws the bars in here -->
+                    <div style="height: 220px">
+                        <canvas id="histogram"></canvas>
+                    </div>
+                    <div class="text-center small font-monospace text-secondary mt-2">
+                        Signal strength (dBm). Each bar is 5 dBm wide and starts at its label.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card h-100">
+                <div class="card-header py-3 px-4">
+                    <h2 class="h5 fw-semibold mb-1">Device Breakdown</h2>
+                    <div class="text-secondary small">Unique drone IDs in this session</div>
+                </div>
+                <div class="card-body px-4">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <h3 class="small fw-semibold text-uppercase text-secondary mb-3">Frequency band</h3>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="badge rounded-0 bg-dark p-1"></span>
+                                <span>2.4 GHz</span>
+                                <strong id="count-24" class="ms-auto font-monospace">0</strong>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="badge rounded-0 bg-secondary p-1"></span>
+                                <span>5.8 GHz</span>
+                                <strong id="count-58" class="ms-auto font-monospace">0</strong>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <h3 class="small fw-semibold text-uppercase text-secondary mb-3">Classification</h3>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="badge rounded-0 bg-primary p-1"></span>
+                                <span>OcuSync</span>
+                                <strong id="count-ocusync" class="ms-auto font-monospace">0</strong>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="badge rounded-0 bg-primary bg-opacity-50 p-1"></span>
+                                <span>Lightbridge</span>
+                                <strong id="count-lightbridge" class="ms-auto font-monospace">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center small font-monospace text-uppercase text-secondary py-3">
+                    Each distinct drone ID is counted once
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Active detections table ===== -->
+    <section class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-start py-3 px-4">
+            <div>
+                <h2 class="h5 fw-semibold mb-1">
+                    Active Detections
+                    <span id="active-count" class="badge text-bg-primary ms-1">0</span>
+                </h2>
+                <div class="text-secondary small">Drones in the latest message</div>
+            </div>
+            <span class="small font-monospace text-secondary">Auto-refresh <strong class="text-body">1s</strong></span>
+        </div>
+
+        <div class="table-responsive px-3">
+            <table id="detections" class="table table-hover align-middle mb-0 w-100">
+                <thead class="table-light">
+                    <tr class="font-monospace text-uppercase small">
+                        <th class="ps-4">Drone ID</th>
+                        <th>Start time</th>
+                        <th>Duration</th>
+                        <th>Band</th>
+                        <th>Classification</th>
+                        <th class="text-end pe-4">RSSI</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
 </div>

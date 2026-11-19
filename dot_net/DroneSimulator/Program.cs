@@ -5,10 +5,10 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        string apiUrl = "http://localhost:3000/detections";
+        string apiUrl = "https://localhost:7052/detections";
         double intervalSeconds = 3;
 
-        // Optional: dotnet run -- http://localhost:3000/detections 1
+        // Optional: dotnet run -- https://localhost:7052/detections 1
         if (args.Length > 0)
         {
             apiUrl = args[0];

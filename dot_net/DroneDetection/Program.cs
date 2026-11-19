@@ -28,6 +28,9 @@ public class Program
             name: "default",
             pattern: "{controller=Home}/{action=Index}");
 
+        // Map actions that use attribute routes, including /detections and /api/state.
+        app.MapControllers();
+
         app.Run();
     }
 }

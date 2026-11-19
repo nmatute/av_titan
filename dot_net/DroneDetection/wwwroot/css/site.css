@@ -1,31 +1,20 @@
-html {
-  font-size: 14px;
+/* The only custom styling is for the cards. Everything else uses Bootstrap classes. */
+
+/* Square, white cards with a soft charcoal border. */
+.card {
+    --bs-card-bg: #ffffff;
+    --bs-card-border-color: rgba(21, 23, 25, 0.14);
+    --bs-card-cap-bg: #ffffff;
+    --bs-card-border-radius: 2px;
+    --bs-card-inner-border-radius: 2px;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+.card-header,
+.card-footer {
+    border-color: rgba(21, 23, 25, 0.14);
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-body {
-  margin-bottom: 60px;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+/* The blue line along the bottom of the "Active detections" card. */
+.card-accent {
+    border-bottom: 3px solid var(--bs-primary);
 }
