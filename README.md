@@ -8,7 +8,6 @@ Small system with three parts:
 
 <details>
 <summary><h2>Architecture</h2></summary>
-
 ```mermaid
 flowchart LR
     SIM["DroneSimulator<br/>(console app)"]
@@ -52,7 +51,7 @@ tests/                     xUnit tests
 
 </details>
 
-<details open>
+<details >
 <summary><h2>How to run</h2></summary>
 
 ### 1. Install the .NET 9 SDK
