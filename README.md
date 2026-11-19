@@ -1,6 +1,6 @@
 # Drone Detection
-
-Small system with three parts:
+Please focus your review on the two .NET projects, **dot_net/DroneSimulator** and **dot_net/DroneDetection**. <br>
+This system has three main parts:
 
 1. **DroneSimulator**: a console app that pretends to be a detection service and POSTs a `detections` message every 3 seconds.
 2. **DroneDetection**: an ASP.NET Core (.NET 9) MVC app. It receives the messages, keeps everything in memory (no database), and serves a JSON API plus the dashboard page.
