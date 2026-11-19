@@ -5,8 +5,9 @@ Small system with three parts:
 1. **DroneSimulator**: a console app that pretends to be a detection service and POSTs a `detections` message every 3 seconds.
 2. **DroneDetection**: an ASP.NET Core (.NET 9) MVC app. It receives the messages, keeps everything in memory (no database), and serves a JSON API plus the dashboard page.
 3. **UI Dashboard**: a single web page (Bootstrap, DataTables, Chart.js) that asks the API for the latest numbers and draws them.
-
-<details>
+<p align="center">
+  <img src="imgs/dashboard.png" alt="Dashboard" width="600">
+</p><details>
 <summary><h2>Architecture</h2></summary>
 ```mermaid
 flowchart LR
@@ -251,8 +252,6 @@ Key details:
 <summary><h2>UI design</h2></summary>
 
 Figma: <https://www.figma.com/design/R7VzvHpJtvWwAYYId6L0CF/Drone-Detection?node-id=0-1&t=oRSzjZseclp2gmti-1>
-
-![Dashboard](docs/dashboard.png)
 
 The page uses Bootstrap 5 for layout and styling and some custom CSS for the cards only (`wwwroot/css/site.css`).
 
