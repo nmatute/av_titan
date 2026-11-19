@@ -1,29 +1,33 @@
-var builder = WebApplication.CreateBuilder(args);
+using System.Text.Json.Serialization;
+using DroneDetection.Services;
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+public class Program
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+
+        // MVC: controllers plus Razor views.
+        builder.Services.AddControllersWithViews().AddJsonOptions(options =>
+        {
+            // the timestamp arrives as a string ("1712010300"), so allow reading numbers from strings
+            options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
+            // reject JSON nulls for fields that aren't nullable
+            options.JsonSerializerOptions.RespectNullableAnnotations = true;
+        });
+
+        // Dependency injection: register services that controllers can use.
+        builder.Services.AddSingleton(TimeProvider.System);   // the real clock
+        builder.Services.AddSingleton<DetectionStore>();      // one shared store for the whole app
+
+        var app = builder.Build();
+
+        app.UseStaticFiles();   // serves wwwroot (css, js)
+
+        app.MapControllerRoute(
+            name: "default",
+            pattern: "{controller=Home}/{action=Index}");
+
+        app.Run();
+    }
 }
-
-app.UseHttpsRedirection();
-app.UseRouting();
-
-app.UseAuthorization();
-
-app.MapStaticAssets();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
-
-app.Run();
