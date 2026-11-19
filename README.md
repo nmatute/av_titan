@@ -7,8 +7,10 @@ Small system with three parts:
 3. **UI Dashboard**: a single web page (Bootstrap, DataTables, Chart.js) that asks the API for the latest numbers and draws them.
 <p align="center">
   <img src="imgs/dashboard.png" alt="Dashboard" width="600">
-</p><details>
+</p>
+<details>
 <summary><h2>Architecture</h2></summary>
+  
 ```mermaid
 flowchart LR
     SIM["DroneSimulator<br/>(console app)"]
