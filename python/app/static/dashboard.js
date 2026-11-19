@@ -1,38 +1,12 @@
 $(function () {
-  const format = {
-    pad2(number) {
-      return String(number).padStart(2, "0");
-    },
-
-    clock(seconds) {
-      const date = new Date(seconds * 1000);
-      return [date.getHours(), date.getMinutes(), date.getSeconds()].map(format.pad2).join(":");
-    },
-
-    duration(seconds) {
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      return [hours, minutes, seconds % 60].map(format.pad2).join(":");
-    },
-
-    count(number) {
-      return number.toLocaleString();
-    },
-
-    rssi(number) {
-      return number.toFixed(4);
-    },
-
-    lastUpdate(timestamp) {
-      if (timestamp === null) {
-        return "—";
-      }
-      const secondsAgo = Math.floor((Date.now() - timestamp) / 1000);
-      return secondsAgo < 2 ? "Just now" : secondsAgo + "s ago";
-    },
-
-    escapeHtml: DataTable.util.escapeHtml,
-  };
+    const format = {
+        clock(seconds) {
+            return new Date(seconds * 1000).toLocaleTimeString();   // 1712010300 -> "2:05:00 PM"
+        },
+        duration(seconds) {
+            return seconds + "s";   // 75 -> "75s"
+        },
+    };
 
   const POLL_MS = 1000;
 
@@ -50,15 +24,12 @@ $(function () {
       columns: [
         {
           data: "drone_id",
-          className: "drone-cell ps-4 font-monospace fw-semibold",
+          className: "ps-4 font-monospace fw-semibold",
           render: DataTable.render.text(),
-          createdCell(cell, value, drone) {
-            $(cell).toggleClass("band-24", drone.band === "2.4GHz");
-          },
         },
         {
           data: "start_time",
-          className: "font-monospace muted",
+          className: "font-monospace text-secondary",
           // Show local time in the table and search, and sort by the timestamp.
           render: (start, type) => type === "display" || type === "filter" ? format.clock(start) : start,
         },
@@ -70,84 +41,100 @@ $(function () {
         {
           data: "band",
           render: (band, type) => type === "display"
-            ? `<span class="badge band-badge font-monospace">${format.escapeHtml(band)}</span>`
-            : format.escapeHtml(band),
+            ? `<span class="badge text-bg-light border font-monospace">${band}</span>`
+            : band,
         },
         { data: "classification", render: DataTable.render.text() },
         {
           data: "rssi",
           className: "text-end pe-4 font-monospace",
           render: (rssi, type) => type === "display"
-            ? `<strong>${format.rssi(rssi)}</strong> <span class="muted small">dBm</span>`
+            ? `<strong>${rssi}</strong> <span class="text-secondary small">dBm</span>`
             : rssi,
         },
       ],
     });
   }
 
-  function updateDetectionsTable(table, active, displayTime) {
-    const rows = active.map(drone => ({
-      ...drone,
-      duration: Math.max(0, displayTime - drone.start_time),
-    }));
-    // Refresh the rows on the existing table so its search and sort stay in place.
-    table.clear().rows.add(rows).draw();
-  }
-
-  function renderNumbers(state) {
-    const activeCount = state.active.length;
-    const uniqueCount = Object.values(state.bands).reduce((sum, count) => sum + count, 0);
-
-    $("#stat-active").text(format.pad2(activeCount));
-    $("#stat-messages").text(format.count(state.messageCount));
-    $("#stat-unique").text(format.pad2(uniqueCount));
-    $("#stat-unique-active").text(activeCount + " currently active");
-    $("#active-count").text(activeCount);
-  }
-
-  function renderHistogram(bins) {
-    const biggest = Math.max(1, ...bins.map(bin => bin.count));
-    const samples = bins.reduce((sum, bin) => sum + bin.count, 0);
-    const bars = bins.map(({ count }) => {
-      const height = (count / biggest) * 88;
-      const topClass = count === biggest ? "hist-bar-top" : "";
-      return `<div class="hist-col"><div class="hist-bar-area">
-        <span class="hist-count font-monospace">${count}</span>
-        <div class="hist-bar ${topClass}" style="height:${height}%"></div>
-      </div></div>`;
-    }).join("");
-    const labels = bins.map(({ low }) => `<div class="hist-label font-monospace">${low}</div>`).join("");
-
-    $("#histogram").html(
-      `<div class="histogram">${bars}</div><div class="hist-labels">${labels}</div>`
-    );
-    $("#histogram-samples").text(format.count(samples) + " samples");
-  }
-
-  function renderCounts(elementId, counts, barClass) {
-    const $container = $("#" + elementId);
-    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    if (entries.length === 0) {
-      $container.html('<div class="muted small">No data yet</div>');
-      return;
+    // Replaces the table rows with the latest active drones.
+    function updateDetectionsTable(table, active, displayTime) {
+        // .map() builds a new list with one new row for each drone.
+        const rows = active.map(drone => ({
+            drone_id: drone.drone_id,                                // copy each field by hand
+            start_time: drone.start_time,
+            band: drone.band,
+            classification: drone.classification,
+            rssi: drone.rssi,
+            duration: Math.max(0, displayTime - drone.start_time),   // the one extra field: now minus start time
+        }));
+        // Refresh the rows on the existing table so its search and sort stay in place.
+        table.clear().rows.add(rows).draw();
     }
 
-    const total = entries.reduce((sum, [, count]) => sum + count, 0);
-    const rows = entries.map(([name, count]) => {
-      const percent = (count / total) * 100;
-      return `<div class="mb-3">
-        <div class="d-flex justify-content-between small mb-1">
-          <span>${format.escapeHtml(name)}</span><strong>${count}</strong>
-        </div>
-        <div class="progress"><div class="progress-bar ${barClass}" style="width:${percent}%"></div></div>
-      </div>`;
-    }).join("");
-    $container.html(rows);
-  }
+    function renderNumbers(state) {
+        // How many drones are in the latest message.
+        const activeCount = state.active.length;
+
+        // Add up the count of every band. Each distinct drone is counted once there,
+        // so the total is the number of unique drones seen.
+        let uniqueCount = 0;
+        for (const band in state.bands) {
+            uniqueCount += state.bands[band];   // e.g. 3 on "2.4GHz" + 5 on "5.8GHz" = 8
+        }
+
+        $("#stat-active").text(activeCount);                                  // active drones
+        $("#stat-messages").text(state.messageCount);                         // total messages received
+        $("#stat-unique").text(uniqueCount);                                  // unique drones seen
+        $("#stat-unique-active").text(activeCount + " currently active");
+        $("#active-count").text(activeCount);                                 // badge next to the table title
+    }
+
+    // Create the bar chart once. It starts empty and we fill it in on every poll.
+    const histogramChart = new Chart(document.getElementById("histogram"), {
+        type: "bar",                                   // a bar chart
+        data: {
+            labels: [],                                  // the label under each bar
+            datasets: [{ data: [], backgroundColor: "#151719" }],   // the height of each bar, and the bar color
+        },
+        options: {
+            maintainAspectRatio: false,   // fill the 220px box instead of keeping a 2:1 shape
+            animation: false,                            // no animation, since it redraws every second
+            plugins: { legend: { display: false } },     // hide the legend, there is only one set of bars
+            scales: { x: { grid: { display: false } } },
+        },
+    });
+
+    function renderHistogram(bins) {
+        const labels = [];   // -110, -105, ...
+        const counts = [];   // how many readings in each bin
+        let samples = 0;     // total readings
+
+        for (const bin of bins) {
+            labels.push(bin.low);       // the bin's low edge is its label
+            counts.push(bin.count);     // the bin's count is the bar's height
+            samples += bin.count;       // add to the total
+        }
+
+        histogramChart.data.labels = labels;               // hand the new numbers to the chart...
+        histogramChart.data.datasets[0].data = counts;
+        histogramChart.update();                           // redraw chart with the new numbers
+
+        $("#histogram-samples").text(samples + " samples");
+    }
+
+    // Fills in the four numbers in the Device Breakdown card.
+    function renderBreakdown(state) {
+        // state.bands looks like { "2.4GHz": 2, "5.8GHz": 2 }.
+        // "|| 0" shows 0 when a name hasn't been seen yet (the value would be undefined).
+        $("#count-24").text(state.bands["2.4GHz"] || 0);
+        $("#count-58").text(state.bands["5.8GHz"] || 0);
+        $("#count-ocusync").text(state.classes["OcuSync"] || 0);
+        $("#count-lightbridge").text(state.classes["Lightbridge"] || 0);
+    }
 
   function renderFeedControls(feedOn) {
     $("#feed-label").text(feedOn ? "Detection Feed On" : "Detection Feed Off");
-    $("#feed-dot").toggleClass("off", !feedOn);
+    $("#feed-dot").toggleClass("bg-primary", feedOn).toggleClass("bg-secondary", !feedOn);
     $("#feed-button")
       .text(feedOn ? "Turn Off" : "Turn On")
       .toggleClass("btn-danger", feedOn)
@@ -187,13 +174,10 @@ $(function () {
       renderNumbers(state);
       updateDetectionsTable(table, state.active, displayTime);
       renderHistogram(state.histogram);
-      renderCounts("bands", state.bands, "");
-      renderCounts("classes", state.classes, "bar-blue");
-      $("#last-update").text(format.lastUpdate(lastUpdate));
+      renderBreakdown(state);
     }
 
     async function tick() {
-      // Keep the last-update label current even when polling is paused.
       if (feedOn) {
         await loadState();
       }
