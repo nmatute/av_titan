@@ -247,7 +247,58 @@ Key details:
 - **Error box.** If a request fails, a red "Can't reach the API" message appears, and it disappears again when requests work.
 
 </details>
+<details>
+<summary><h2>Tests</h2></summary>
 
+### How to run the tests
+
+From the solution folder (the one containing the `.sln` file):
+
+```
+dotnet test
+```
+
+You do **not** need to start the API or the simulator first. The tests are self-contained.
+
+The tests are in `tests/DroneTests` and use [xUnit](https://xunit.net/). They need the packages `Microsoft.AspNetCore.Mvc.Testing` (to start the API in memory) and `Microsoft.Extensions.TimeProvider.Testing` (for the fake clock). Both are already listed in the test project.
+
+### What is tested
+
+| Test class | Tests | What it covers |
+|---|---|---|
+| `DetectionSimulatorTests` | 2 | The simulator's output: the right JSON field names and values, ids never reused, drones that stay keep their details, rssi changes by at most 3 and stays in range, no more than 2 new drones per message |
+| `DetectionStoreTests` | 5 | The store's logic: message count, active drones, each drone counted once, histogram bins, the 5-minute window, clear |
+| `DetectionsApiTests` | 6 tests | The real API over HTTP: accepting valid messages, rejecting bad ones, counting, clearing |
+
+**`DetectionSimulatorTests`**
+
+- `GenerateMessage_SerializesExpectedApiFields`: checks the JSON the API would receive: `msg_type`, `system`, a string `timestamp`, 8-letter ids, allowed bands and classifications, rssi between -110 and -65.
+- `GenerateMessage_PreservesSurvivorsAndDoesNotReuseIds`: generates 40 messages in a row and checks that ids are never reused, a drone that stays keeps its start time, band and classification, its rssi changes (but by no more than 3), rssi has at most 4 decimals, messages are never empty, and at most 2 new drones appear at a time.
+
+**`DetectionStoreTests`**
+
+- `Counts_messages_and_keeps_only_the_latest_drones_as_active`: the counter goes up for each message, and only the latest message's drones are active.
+- `Counts_each_drone_once_by_band_and_classification`: a drone seen in many messages is counted once in the breakdown.
+- `Histogram_puts_each_reading_in_its_bin`: readings land in the right 5 dBm bar, including the edges at -110 and -65.
+- `Histogram_ignores_readings_older_than_five_minutes`: old readings stop counting after 5 minutes (using a fake clock, so the test doesn't have to wait).
+- `Clear_resets_everything`: clearing empties the counters, the table, the breakdown and the histogram.
+
+**`DetectionsApiTests`**
+
+- `Valid_message_returns_204_and_shows_up_in_the_state`: a valid message is accepted and appears in `GET /api/state`.
+- `Timestamp_can_be_a_string_or_a_number` (2 cases): both "1712010300" and 1712010300 are accepted.
+- `Bad_messages_return_400` (4 cases): a wrong msg_type, a timestamp that isn't a number, an empty drone_id and a null rssi are all rejected.
+- `Broken_or_incomplete_bodies_return_400` (2 cases): text that isn't JSON, and a message with no detections list, are rejected.
+- `Same_drone_in_two_messages_is_counted_once_in_the_bands`: the same drone sent twice counts as one drone.
+- `Clear_empties_the_state`: `POST /api/clear` resets the state.
+
+### How the tests stay reliable
+
+- **A fake clock.** The store asks a TimeProvider for the time. The tests give it a FakeTimeProvider that they can move forward, so the 5-minute window can be tested instantly.
+- **A seeded `Random`.** The simulator tests pass `new Random(42)`, so every run produces exactly the same drones.
+- **A fresh app per test.** Each API test starts its own copy of the app, so tests never share data or depend on running in a particular order.
+
+</details>
 <details>
 <summary><h2>UI design</h2></summary>
 
